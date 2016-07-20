@@ -1,0 +1,52 @@
+#
+# A common problem when using rails (or any other web framework with Compose is
+# initializing the database. The database tables and fixture data is stored as
+# "models" in the application code.
+#
+# This example shows how dobi can be used to create a database image for a rails
+# application, and how to use the image with Compose.
+#
+
+
+meta:
+    project: example-rails-init-db
+
+mount=source:
+    bind: .
+    path: /code
+
+
+image=rails:
+    image: web-dev
+    context: .
+
+image=database-img:
+    image: Dockerfile.db
+    context: .
+    depends: [export-models]
+
+
+compose=empty-db-env:
+    files: [empty-db.yaml]
+    project: '{unique}'
+
+run=export-models:
+    use: rails
+    mounts: [source]
+    depends: [empty-db-env]
+    artifact: export.sql
+    command: ./export.sh
+
+# Setup the example rails app by writing files into the blog/ directory
+run=setup:
+    use: rails
+    mounts: [source]
+    artifact: ./blog
+    command: ./setup.sh
+
+# TODO: remove
+run=shell:
+    use: rails
+    interactive: true
+    mounts: [source]
+    command: bash
