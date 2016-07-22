@@ -1,15 +1,11 @@
 #
-# A common problem when using rails (or any other web framework with Compose is
-# initializing the database. The database tables and fixture data is stored as
-# "models" in the application code.
+# dobi.yaml example - Initialize a database
+# See README.md for a full description of this example.
 #
-# This example shows how dobi can be used to create a database image for a rails
-# application, and how to use the image with Compose.
-#
-
 
 meta:
-    project: example-rails-init-db
+    project: examplerailsdb
+
 
 mount=source:
     bind: .
@@ -17,36 +13,38 @@ mount=source:
 
 
 image=rails:
-    image: web-dev
+    image: example/web
+    dockerfile: Dockerfile
     context: .
+    tags: ['{unique}', '{project}']
 
 image=database-img:
-    image: Dockerfile.db
-    context: .
+    image: example/database
+    dockerfile: Dockerfile
+    context: db/
     depends: [export-models]
+    tags: ['{unique}', '{project}']
 
 
 compose=empty-db-env:
     files: [empty-db.yaml]
-    project: '{unique}'
+    project: '{project}export'
+
+compose=dev-environment:
+    files: [docker-compose.yml]
+    project: '{project}'
+    depends: ['rails:tag', 'database-img:tag']
+
 
 run=export-models:
     use: rails
     mounts: [source]
-    depends: [empty-db-env]
     artifact: export.sql
-    command: ./export.sh
+    command: /code/export.sh
+    # Connect the container to the `empty-db-env` network created by Compose
+    net-mode: '{project}export_default'
+    depends: [empty-db-env]
 
-# Setup the example rails app by writing files into the blog/ directory
-run=setup:
-    use: rails
-    mounts: [source]
-    artifact: ./blog
-    command: ./setup.sh
 
-# TODO: remove
-run=shell:
-    use: rails
-    interactive: true
-    mounts: [source]
-    command: bash
+alias=dev:
+    tasks: ['dev-environment:attach']

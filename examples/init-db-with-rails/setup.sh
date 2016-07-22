@@ -57,9 +57,14 @@ EOF
 
 bin/rails generate model Article title:string text:text
 
+# TODO: set these to different values
 cat > config/database.yml <<EOF
 development:
   adapter: postgresql
-  database: blogdb
-  host: database
+  database: postgres
+  host: postgres
+  user: postgres
 EOF
+
+echo "gem 'pg'" >> ./Gemfile
+bundle install
