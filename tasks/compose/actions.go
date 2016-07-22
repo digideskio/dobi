@@ -39,7 +39,7 @@ func RunUp(ctx *context.ExecuteContext, t *Task) error {
 // StopUp stops the project
 func StopUp(ctx *context.ExecuteContext, t *Task) error {
 	t.logger().Info("project stop")
-	return t.execCompose(ctx, "stop", "-d")
+	return t.execCompose(ctx, "stop")
 }
 
 // RunDown removes all the project resources
